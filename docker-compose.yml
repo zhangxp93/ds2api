@@ -1,17 +1,23 @@
+# 使用命令如下
+# docker-compose down
+# docker-compose up -d
+
 services:
   ds2api:
-    image: ghcr.io/cjackhwang/ds2api:latest
+    build: .
     container_name: ds2api
     restart: always
+    ports:
+      - "6011:5001"
+    volumes:
+      # 1. 确保左边是宿主机的真实文件路径
+      # 2. 确保右边是容器内程序寻找的绝对路径
+      - ./config.json:/app/config.json
+    environment:
+      # 显式指定路径，消除程序猜测路径的歧义
+      - DS2API_CONFIG_PATH=/app/config.json
+      # 顺便把这个警告消掉，设置你的后台管理密码
+      - DS2API_ADMIN_KEY=your_secure_password
+    # 如果 .env 文件里有配置，也可以保留
     env_file:
       - .env
-    ports:
-      # Host port is configurable via DS2API_HOST_PORT; container port stays fixed at 5001.
-      - "${DS2API_HOST_PORT:-6011}:5001"
-    volumes:
-      - ./config.json:/data/config.json   # 配置文件（持久化推荐路径）
-    environment:
-      - TZ=Asia/Shanghai
-      - LOG_LEVEL=INFO
-      - DS2API_ADMIN_KEY=${DS2API_ADMIN_KEY:-ds2api}
-      - DS2API_CONFIG_PATH=/data/config.json
